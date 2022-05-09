@@ -91,9 +91,9 @@ def player_move():
 
 def utility_value():
     if check_who_won(bot):
-        return 1
+        return np.inf
     elif check_who_won(player):
-        return -1
+        return np.NINF
     elif check_for_draw():
         return 0
 
@@ -106,11 +106,9 @@ def max_value(board, alpha, beta, depth):
         for move in board.keys():
             if board[move] == ' ':  # The move is possible
                 board[move] = bot
-                alpha_memory, beta_memory = alpha, beta
                 best_score = max(best_score,
                                  min_value(board, alpha, beta, depth=depth+1))
                 board[move] = ' '  # Get back to the previous game
-                alpha, beta = alpha_memory, beta_memory
                 if best_score > beta:
                     return best_score
                 alpha = max(alpha, best_score)
@@ -125,10 +123,8 @@ def min_value(board, alpha, beta, depth):
         for move in board.keys():
             if board[move] == ' ':  # The move is possible
                 board[move] = player
-                alpha_memory, beta_memory = alpha, beta
                 best_score = min(best_score,
                                  max_value(board, alpha, beta, depth=depth+1))
-                alpha, beta = alpha_memory, beta_memory
                 board[move] = ' '  # Get back to the previous game
                 if best_score < alpha:
                     return best_score
@@ -136,13 +132,13 @@ def min_value(board, alpha, beta, depth):
         return best_score
 
 
-def alpha_beta_search():
+def alpha_beta_search(alpha, beta):
     best_score = np.NINF
     best_move = 0
     for move in board.keys():
         if board[move] == ' ':
             board[move] = bot
-            score = min_value(board, alpha=np.NINF, beta=np.inf, depth=1)
+            score = min_value(board, alpha, beta, depth=1)
             board[move] = ' '
             if score > best_score:
                 best_score = score
@@ -169,9 +165,5 @@ while not check_for_win():
         player_move()
         current_player = 1
     else:
-        alpha_beta_search()
+        alpha_beta_search(alpha=np.NINF, beta=np.inf)
         current_player = 0
-
-
-
-
