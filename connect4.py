@@ -1,10 +1,9 @@
 import numpy as np
 import time
 from termcolor import colored
+import random
 
 n_columns, n_lines = 12, 6
-max_exploration_depth = 5
-
 
 def create_board():
     board = {}
@@ -31,8 +30,8 @@ def print_board(board):
         print_line += f'{column} '
     print(print_line)
 
-def useless():
 
+def useless():
     for line in range(n_lines):
         print_line = '|'
         for column in board.keys():
@@ -72,7 +71,7 @@ def check_for_win():
     for mark in [player, bot]:  # For each player
 
         # Check horizontal locations for win
-        for c in range(min(columns), max(columns)-3):
+        for c in range(min(columns), max(columns) - 3):
             for r in range(n_lines):
                 try:
                     if board[c][r] == board[c + 1][r] == board[c + 2][r] == board[c + 3][r] == mark:
@@ -80,7 +79,6 @@ def check_for_win():
                 except:
                     print_board(board)
                     exit()
-
 
         # Check vertical locations for win
         for c in board.keys():
@@ -143,13 +141,16 @@ def insert_letter(letter, column, total_time_AI):
                 print(f"Player wins! \n Total computing time for AI {round(total_time_AI, 3)} second")
                 exit()
         if check_for_draw():
-            print(f"Draw! \n Total computing time for AI {round(total_time_AI,3)} second")
+            print(f"Draw! \n Total computing time for AI {round(total_time_AI, 3)} second")
             exit()
 
     else:
-        print("Can't insert there!")
-        column = int(input("Please enter new position:  "))
-        insert_letter(letter, column, total_time_AI)
+        if letter == 'X':
+            alpha_beta_search(total_time_AI)
+        else:
+            print("Can't insert there!")
+            column = int(input("Please enter new position:  "))
+            insert_letter(letter, column, total_time_AI)
 
 
 def player_move(total_time_for_AI):
@@ -177,7 +178,7 @@ def utility_value_for_unfinished_game():
     for c in range(min(columns), max(columns)):
         for r in range(n_lines):
 
-            try:   # Check horizontal locations for win
+            try:  # Check horizontal locations for win
                 if board[c][r] == board[c + 1][r] == player:
                     heuristic -= 10
                 elif board[c][r] == board[c + 1][r] == bot:
@@ -192,10 +193,10 @@ def utility_value_for_unfinished_game():
             except:
                 pass
 
-            try:   # Check vertical locations for win
+            try:  # Check vertical locations for win
                 if board[c][r] == board[c][r + 1] == bot:
                     heuristic += 10
-                elif board[c][r] == board[c][r+1] == player:
+                elif board[c][r] == board[c][r + 1] == player:
                     heuristic -= 10
             except:
                 pass
@@ -206,7 +207,7 @@ def utility_value_for_unfinished_game():
                     heuristic -= 100
             except:
                 pass
-            try:   # Check positively sloped diagonals
+            try:  # Check positively sloped diagonals
                 if board[c][r] == board[c + 1][r + 1] == bot:
                     heuristic += 10
                 elif board[c][r] == board[c + 1][r + 1] == player:
@@ -221,7 +222,7 @@ def utility_value_for_unfinished_game():
             except:
                 pass
 
-            try:   # Check negatively sloped diagonals
+            try:  # Check negatively sloped diagonals
                 if board[c][r] == board[c + 1][r - 1] == bot:
                     heuristic += 10
                 elif board[c][r] == board[c + 1][r - 1] == player:
@@ -231,7 +232,7 @@ def utility_value_for_unfinished_game():
             try:
                 if board[c][r] == board[c + 1][r - 1] == board[c + 2][r - 2] == bot:
                     heuristic += 100
-                elif board[c][r] == board[c + 1][r - 1] == board[c + 2][r - 2]  == player:
+                elif board[c][r] == board[c + 1][r - 1] == board[c + 2][r - 2] == player:
                     heuristic -= 100
             except:
                 pass
@@ -295,7 +296,7 @@ def alpha_beta_search(total_time_AI):
     print('\nAI is preparing its next move')
     tic = time.time()
     best_score = np.NINF
-    best_column = 5
+    best_column = random.randint(1, 12)
     for column in board.keys():
         if is_column_available(column):
 
@@ -308,7 +309,7 @@ def alpha_beta_search(total_time_AI):
                 best_score = score
                 best_column = column
     toc = time.time()
-    print(f'AI played column {best_column} in {round(toc-tic, 3)} seconds')
+    print(f'AI played column {best_column} in {round(toc - tic, 3)} seconds')
     insert_letter(bot, best_column, total_time_AI)
 
 
@@ -316,13 +317,16 @@ board = create_board()
 print_board(board)
 
 current_player = int(input('Indicate who will start\n0 for player\n1 for bot\n'))
+max_exploration_depth = int(input('Indicate level of the AI\nLevel 4 : 3 seconds of computing per move\n\
+Level 5 : 40 seconds of computing per move\n'))
 
 player = 'O'
 bot = 'X'
 total_time_for_AI = 0
 first_AI_move = True
+move_count = 0
 
-while not check_for_win():
+while not check_for_win() and move_count < 42:
 
     if current_player == 0:
         player_move(total_time_for_AI)
@@ -331,16 +335,15 @@ while not check_for_win():
     else:
         tic = time.time()
         if first_AI_move:
-            if is_column_available(6):
-                insert_letter(bot, 6, total_time_for_AI)
-                print('AI played column 6 immediately (0.0 second)')
-            else:
-                insert_letter(bot, 7, total_time_for_AI)
-                print('AI played column 7 immediately (0.0 second)')
+            insert_letter(bot, 6, total_time_for_AI)
+            print('AI played column 6 immediately (0.0 second)')
             first_AI_move = False
         else:
             alpha_beta_search(total_time_for_AI)
 
         toc = time.time()
-        total_time_for_AI += toc-tic
+        total_time_for_AI += toc - tic
         current_player = 0
+    move_count += 1
+
+print('More than 42 moves : Draw !')  # This part of the code is only executed if after 42 moves nobody won
