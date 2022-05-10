@@ -137,10 +137,10 @@ def insert_letter(letter, column, total_time_AI):
         print_board(board)
         if check_for_win():
             if letter == 'X':
-                print(f"Bot wins! \n Total computing time for AI {round(total_time_AI,3)} seconds")
+                print(f"Bot wins! \n Total computing time for AI {round(total_time_AI, 3)} seconds")
                 exit()
             else:
-                print(f"Player wins! \n Total computing time for AI {round(total_time_AI,3)} second")
+                print(f"Player wins! \n Total computing time for AI {round(total_time_AI, 3)} second")
                 exit()
         if check_for_draw():
             print(f"Draw! \n Total computing time for AI {round(total_time_AI,3)} second")
@@ -295,7 +295,7 @@ def alpha_beta_search(total_time_AI):
     print('\nAI is preparing its next move')
     tic = time.time()
     best_score = np.NINF
-    best_column = 0
+    best_column = 5
     for column in board.keys():
         if is_column_available(column):
 
