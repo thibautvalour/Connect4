@@ -149,7 +149,7 @@ def insert_letter(letter, column, total_time_AI):
     else:
         print("Can't insert there!")
         column = int(input("Please enter new position:  "))
-        insert_letter(letter, column)
+        insert_letter(letter, column, total_time_AI)
 
 
 def player_move(total_time_for_AI):
