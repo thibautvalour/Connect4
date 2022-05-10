@@ -315,7 +315,7 @@ def alpha_beta_search(total_time_AI):
 board = create_board()
 print_board(board)
 
-current_player = int(input('Enter who should start\n0 for player\n1 for bot\n'))
+current_player = int(input('Indicate who will start\n0 for player\n1 for bot\n'))
 
 player = 'O'
 bot = 'X'
