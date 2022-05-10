@@ -31,19 +31,6 @@ def print_board(board):
     print(print_line)
 
 
-def useless():
-    for line in range(n_lines):
-        print_line = '|'
-        for column in board.keys():
-            print_line += f'{board[column][line]}|'
-        print(print_line)
-
-    print_line = ' '
-    for column in board.keys():
-        print_line += f'{column} '
-    print(print_line)
-
-
 def is_column_available(column):
     return (column in list(board.keys())) and (' ' in board[column])
 
@@ -56,13 +43,8 @@ def max_line_for_a_new_coin(column):
     return deepest_line
 
 
-def check_for_draw():
-    """Works only after victory was checked"""
-    for column in board.keys():
-        for line in range(n_lines):
-            if board[column][line] == ' ':
-                return False
-    return True
+def check_for_draw(move_count):
+    return move_count >= 41
 
 
 def check_for_win():
@@ -129,7 +111,7 @@ def check_who_won(mark):
     return False
 
 
-def insert_letter(letter, column, total_time_AI):
+def insert_letter(letter, column, total_time_AI, move_count):
     if is_column_available(column):
         board[column][max_line_for_a_new_coin(column)] = letter
         print_board(board)
@@ -140,7 +122,7 @@ def insert_letter(letter, column, total_time_AI):
             else:
                 print(f"Player wins! \n Total computing time for AI {round(total_time_AI, 3)} second")
                 exit()
-        if check_for_draw():
+        if check_for_draw(move_count):
             print(f"Draw! \n Total computing time for AI {round(total_time_AI, 3)} second")
             exit()
 
@@ -150,24 +132,26 @@ def insert_letter(letter, column, total_time_AI):
         else:
             print("Can't insert there!")
             column = int(input("Please enter new position:  "))
-            insert_letter(letter, column, total_time_AI)
+            insert_letter(letter, column, total_time_AI, move_count)
 
 
-def player_move(total_time_for_AI):
+def player_move(total_time_for_AI, move_count):
     good_format = False
     while not good_format:
         column = input("Enter the position for 'O':  ")  # Ask column
         good_format = column.isdigit()  # check the format
     column = int(column)
-    insert_letter(player, column, total_time_for_AI)
+    insert_letter(player, column, total_time_for_AI, move_count)
 
 
-def utility_value_for_game_over():
+########## IA ##########
+
+def utility_value_for_game_over(move_count):
     if check_who_won(bot):
         return np.inf
     elif check_who_won(player):
         return np.NINF
-    elif check_for_draw():
+    elif check_for_draw(move_count):
         return 0
 
 
@@ -240,9 +224,9 @@ def utility_value_for_unfinished_game():
     return heuristic
 
 
-def max_value(board, alpha, beta, depth):
-    if check_for_draw() or check_for_win():  # Is the game over
-        return utility_value_for_game_over()
+def max_value(board, alpha, beta, depth, move_count):
+    if check_for_draw(move_count) or check_for_win():  # Is the game over
+        return utility_value_for_game_over(move_count)
 
     elif depth == max_exploration_depth:
         return utility_value_for_unfinished_game()
@@ -256,7 +240,8 @@ def max_value(board, alpha, beta, depth):
                 board[column][max_line] = bot
 
                 best_score = max(best_score,
-                                 min_value(board, alpha, beta, depth=depth + 1))
+                                 min_value(board, alpha, beta,
+                                           depth=depth + 1, move_count=move_count+1))
 
                 board[column][max_line] = ' '  # Get back to the previous game
 
@@ -266,9 +251,9 @@ def max_value(board, alpha, beta, depth):
         return best_score
 
 
-def min_value(board, alpha, beta, depth):
-    if check_for_draw() or check_for_win():  # Is the game over
-        return utility_value_for_game_over()
+def min_value(board, alpha, beta, depth, move_count):
+    if check_for_draw(move_count) or check_for_win():  # Is the game over
+        return utility_value_for_game_over(move_count)
 
     elif depth == max_exploration_depth:
         return utility_value_for_unfinished_game()
@@ -282,7 +267,8 @@ def min_value(board, alpha, beta, depth):
                 board[column][max_line] = player
 
                 best_score = min(best_score,
-                                 max_value(board, alpha, beta, depth=depth + 1))
+                                 max_value(board, alpha, beta,
+                                           depth=depth + 1, move_count=move_count+1))
 
                 board[column][max_line] = ' '  # Get back to the previous game
 
@@ -292,9 +278,9 @@ def min_value(board, alpha, beta, depth):
     return best_score
 
 
-def alpha_beta_search(total_time_AI):
+def alpha_beta_search(total_time_AI, move_count):
     print('\nAI is preparing its next move')
-    tic = time.time()
+    start = time.time()
     best_score = np.NINF
     best_column = random.randint(1, 12)
     for column in board.keys():
@@ -303,14 +289,15 @@ def alpha_beta_search(total_time_AI):
             max_line = max_line_for_a_new_coin(column)
             board[column][max_line] = bot
 
-            score = min_value(board, alpha=np.NINF, beta=np.inf, depth=1)
+            score = min_value(board, alpha=np.NINF, beta=np.inf, depth=1,
+                              move_count=move_count)
             board[column][max_line] = ' '
             if score > best_score:
                 best_score = score
                 best_column = column
-    toc = time.time()
-    print(f'AI played column {best_column} in {round(toc - tic, 3)} seconds')
-    insert_letter(bot, best_column, total_time_AI)
+    end = time.time()
+    print(f'AI played column {best_column} in {round(end - start, 3)} seconds')
+    insert_letter(bot, best_column, total_time_AI, move_count)
 
 
 board = create_board()
@@ -326,24 +313,22 @@ total_time_for_AI = 0
 first_AI_move = True
 move_count = 0
 
-while not check_for_win() and move_count < 42:
+while not check_for_win():
 
     if current_player == 0:
-        player_move(total_time_for_AI)
+        player_move(total_time_for_AI, move_count)
         current_player = 1
 
     else:
-        tic = time.time()
+        start = time.time()
         if first_AI_move:
-            insert_letter(bot, 6, total_time_for_AI)
+            insert_letter(bot, 6, total_time_for_AI, move_count)
             print('AI played column 6 immediately (0.0 second)')
             first_AI_move = False
         else:
-            alpha_beta_search(total_time_for_AI)
+            alpha_beta_search(total_time_for_AI, move_count)
 
-        toc = time.time()
-        total_time_for_AI += toc - tic
+        end = time.time()
+        total_time_for_AI += end - start
         current_player = 0
     move_count += 1
-
-print('More than 42 moves : Draw !')  # This part of the code is only executed if after 42 moves nobody won
