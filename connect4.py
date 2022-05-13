@@ -128,7 +128,7 @@ def insert_letter(letter, column, total_time_AI, move_count):
 
     else:
         if letter == 'X':
-            alpha_beta_search(total_time_AI)
+            alpha_beta_search(total_time_AI, move_count)
         else:
             print("Can't insert there!")
             column = int(input("Please enter new position:  "))
